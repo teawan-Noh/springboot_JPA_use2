@@ -3,7 +3,6 @@ package jpabook.jpashop.repository;
 import jpabook.jpashop.domain.Member;
 import jpabook.jpashop.domain.Order;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.jpa.repository.support.Querydsl;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -19,24 +18,25 @@ public class OrderRepository {
 
     private final EntityManager em;
 
-    public void save(Order order){
+    public void save(Order order) {
         em.persist(order);
     }
 
-    public Order findOne(Long id){
+    public Order findOne(Long id) {
         return em.find(Order.class, id);
     }
 
     // 주문 검색기능 - JPA에서 동적 쿼리를 어떻게 해결해야 하는가?
     // Querydsl 써야한다.
+
     /**
      * JPA Criteria로 처리
      * JPA Criteria는 JPA 표준 스펙이지만 실무에서 사용하기에 너무 복잡하다. 결국 다른 대안이 필요하다.
      * 많은 개발자가 비슷한 고민을 했지만, 가장 멋진 해결책은 Querydsl이 제시했다. Querydsl 소개장에서 간단히 언급하겠다.
      * 지금은 이대로 진행하자.
-      */
+     */
 
-    public List<Order> findAllByCriteria(OrderSearch orderSearch){
+    public List<Order> findAllByCriteria(OrderSearch orderSearch) {
 
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<Order> cq = cb.createQuery(Order.class);
@@ -62,9 +62,8 @@ public class OrderRepository {
     }
 
 
-
     // // language='JPAQL' 실무에서 이렇게 안쓴다고 함. // 코드 지저분 // 에러 발생 가능성 높음
-    public List<Order> findAllByString(OrderSearch orderSearch){
+    public List<Order> findAllByString(OrderSearch orderSearch) {
 
         String jpql = "select o From Order o join o.member m";
         boolean isFirstCondition = true;
@@ -103,4 +102,14 @@ public class OrderRepository {
 
 //        JPQL 쿼리를 문자로 생성하기는 번거롭고, 실수로 인한 버그가 충분히 발생할 수 있다.
     }
+
+    public List<Order> findAllWithMemberDelivery() {
+        return em.createQuery(
+                "select o from Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery", Order.class
+        ).getResultList();
+    }
+
+
 }

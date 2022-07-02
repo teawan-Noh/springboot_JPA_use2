@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,6 +21,28 @@ public class MemberApiController {
     @GetMapping("/api/v1/members")
     public List<Member> membersV1(){
         return memberService.findMembers();
+    }
+
+    @GetMapping("/api/v2/members")
+    public Result memberV2(){
+        List<Member> findMembers = memberService.findMembers();
+        List<MemberDto> collect = findMembers.stream()
+                .map(m -> new MemberDto(m.getName()))
+                .collect(Collectors.toList());
+
+        return new Result(collect.size(), collect);
+    }
+    @Data
+    @AllArgsConstructor
+    static class Result<T>{
+        private int count;
+        private T data;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class MemberDto{
+        private String name;
     }
 
     @PostMapping("/api/v1/members")
@@ -35,6 +58,20 @@ public class MemberApiController {
 
         Long id = memberService.join(member);
         return new CreateMemberResponse(id);
+    }
+
+    @Data
+    static class CreateMemberRequest{
+        private String name;
+    }
+
+    @Data
+    static class CreateMemberResponse {
+        private Long id;
+
+        public CreateMemberResponse(Long id){
+            this.id = id;
+        }
     }
 
     @PutMapping("/api/v2/members/{id}")
@@ -57,17 +94,7 @@ public class MemberApiController {
         private String name;
     }
 
-    @Data
-    static class CreateMemberRequest{
-        private String name;
-    }
 
-    @Data
-    static class CreateMemberResponse {
-        private Long id;
 
-        public CreateMemberResponse(Long id){
-            this.id = id;
-        }
-    }
+
 }
